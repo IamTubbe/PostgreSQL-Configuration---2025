@@ -1589,10 +1589,34 @@ Estimated Usage = 2GB + (32MB × 100 × 0.5) + 512MB + 64MB
 
 
 ## คำถามท้ายการทดลอง
+```
 1. หน่วยความจำใดบ้างที่เป็น shared memory และมีหลักในการตั้งค่าอย่างไร
+    - shared_buffers เป็นหน่วยความจำที่ทุก connection เข้าถึงร่วมกัน ใช้เก็บข้อมูลที่อ่านจากดิสก์ ปกติตั้งประมาณ 25 – 40% ของ RAM
+
 2. Work memory และ maintenance work memory คืออะไร มีหลักการในการกำหนดค่าอย่างไร
+    - Work memory คือหน่วยความจำต่อ query ใช้เวลา sort, join, aggregate 
+    ส่วน maintenance_work_mem คือ memory ใช้กับงานใหญ่ ๆ เช่น vacuum, create index กำหนดสูงกว่าปกติได้
+
 3. หากมี RAM 16GB และต้องการกำหนด connection = 200 ควรกำหนดค่า work memory และ maintenance work memory อย่างไร
+    - ถ้า RAM 16GB และ connections = 200 จะตั้ง work_mem ประมาณ 16 – 32 MB 
+    และ maintenance_work_mem ประมาณ 512 MB – 1 GB
+
 4. ไฟล์ postgresql.conf และ postgresql.auto.conf  มีความสัมพันธ์กันอย่างไร
+    - postgresql.conf คือไฟล์หลักที่ตั้งค่า Database 
+    ส่วน postgresql.auto.conf จะถูก PostgreSQL เขียนเพิ่มเองเวลาใช้ ALTER SYSTEM ค่าใน auto.conf จะ override ของ conf ได้
+
 5. Buffer hit ratio คืออะไร
+    - คืออัตราส่วนการอ่านข้อมูลจาก memory
+
 6. แสดงผลการคำนวณ การกำหนดค่าหน่วยความจำต่าง ๆ โดยอ้างอิงเครื่องของตนเอง
+    - เครื่อง 32 GB , 200 connections 
+    ตั้ง shared_buffers = 8GB, work_mem = 64MB
+    maintenance_work_mem = 1GB จะใช้ memory สูงสุด 22GB เหลือพอให้ OS
+
 7. การสแกนของฐานข้อมูล PostgreSQL มีกี่แบบอะไรบ้าง เปรียบเทียบการสแกนแต่ละแบบ
+    - PostgreSQL มี 3 แบบสแกน 
+        1.sequential scan อ่านทั้งตาราง
+        2.index scan ใช้ index
+        3.bitmap scan รวม index ลด I/O
+
+```
