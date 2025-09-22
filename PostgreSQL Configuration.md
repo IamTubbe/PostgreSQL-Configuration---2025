@@ -1538,9 +1538,10 @@ SELECT auto_tune_memory();
 ```
 
 ### ผลการทดลอง
-```
-รูปผลการทดลอง
-```
+
+- รูปผลการทดลอง
+
+![alt text](image-33.png)
 
 ```sql
 -- ดูการเปลี่ยนแปลง buffer hit ratio
@@ -1554,9 +1555,10 @@ WHERE heap_blks_read + heap_blks_hit > 0
 ORDER BY hit_ratio;
 ```
 ### ผลการทดลอง
-```
-รูปผลการทดลอง
-```
+
+- รูปผลการทดลอง
+
+![alt text](image-34.png)
 
 ### การคำนวณ Memory Requirements
 
