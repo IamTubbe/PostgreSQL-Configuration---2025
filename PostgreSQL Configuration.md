@@ -1245,11 +1245,14 @@ $$ LANGUAGE plpgsql;
 -- ทดสอบกับ configuration ปัจจุบัน
 SELECT * FROM run_benchmark_suite();
 ```
-### ผลการทดลอง
-```
-รูปผลการทดลอง
-```
 
+### ผลการทดลอง
+
+- รูปผลการทดลอง
+
+![alt text](image-31.png)
+
+```sql
 -- ดูผลการทดสอบ
 SELECT 
     config_name,
@@ -1262,10 +1265,13 @@ SELECT
 FROM benchmark_results
 ORDER BY test_timestamp DESC;
 ```
+
 ### ผลการทดลอง
-```
-รูปผลการทดลอง
-```
+
+- รูปผลการทดลอง
+
+![alt text](image-32.png)
+
 
 ### Step 12: การจัดการ Configuration แบบ Advanced
 
@@ -1526,13 +1532,16 @@ END;
 $$ LANGUAGE plpgsql;
 ```
 
+```sql
 -- ใช้งาน auto-tuning
 SELECT auto_tune_memory();
 ```
+
 ### ผลการทดลอง
 ```
 รูปผลการทดลอง
 ```
+
 ```sql
 -- ดูการเปลี่ยนแปลง buffer hit ratio
 SELECT 
