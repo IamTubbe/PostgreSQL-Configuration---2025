@@ -750,11 +750,13 @@ FROM performance_results
 ORDER BY test_timestamp DESC;
 ```
 ### ผลการทดลอง
-```
-1. รูปผลการทดลอง
-2. อธิบายผลลัพธ์ที่ได้
-```
 
+1. รูปผลการทดลอง
+![alt text](image-21.png)
+```
+2. อธิบายผลลัพธ์ที่ได้
+    - ตารางว่าง เพราะยังไม่มีการรันการทดสอบเก็บผลลัพธ์
+```
 
 ### Step 9: การ Monitoring และ Alerting
 
@@ -787,9 +789,10 @@ FROM pg_settings WHERE name = 'maintenance_work_mem';
 SELECT * FROM memory_monitor;
 ```
 ### ผลการทดลอง
-```
-รูปผลการทดลอง
-```
+
+- รูปผลการทดลอง
+![alt text](image-22.png)
+
 
 ### Step 10: การจำลอง Load Testing
 
@@ -836,9 +839,19 @@ CREATE INDEX idx_orders_product_id ON load_test_orders(product_id);
 CREATE INDEX idx_orders_date ON load_test_orders(order_date);
 ```
 ### ผลการทดลอง
-```
-รูปผลการทดลอง การสร้าง FUNCTION และ INDEX
-```
+
+- รูปผลการทดลอง การสร้าง FUNCTION และ INDEX
+
+![alt text](image-23.png)
+
+![alt text](image-24.png)
+
+![alt text](image-25.png)
+
+![alt text](image-26.png)
+
+![alt text](image-27.png)
+
 
 #### 10.2 การทดสอบ Query Performance
 ```sql
