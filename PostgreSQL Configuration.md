@@ -386,9 +386,9 @@ WHERE name IN (
 ORDER BY name;
 ```
 ### ผลการทดลอง
-```
-รูปผลการลัพธ์การตั้งค่า
-```
+
+- รูปผลการลัพธ์การตั้งค่า
+![alt text](image-11.png)
 
 ### Step 5: การสร้างและทดสอบ Workload
 
@@ -431,10 +431,18 @@ LIMIT 1000;
 ```
 ### ผลการทดลอง
 ```
-1. คำสั่ง EXPLAIN(ANALYZE,BUFFERS) คืออะไร 
-2. รูปผลการรัน
-3. อธิบายผลลัพธ์ที่ได้
+1. คำสั่ง EXPLAIN(ANALYZE,BUFFERS) คืออะไร
+    - EXPLAIN → แสดง execution plan ที่ PostgreSQL จะใช้รัน query
+    - ANALYZE → ให้ PostgreSQL รัน query จริง แล้วแสดงเวลาที่ใช้และจำนวนแถวที่อ่านจริง
+    - BUFFERS → แสดงการใช้ I/O buffer เช่น อ่านจาก memory (cache) หรืออ่าน/เขียน disk
 ```
+2. รูปผลการรัน
+![alt text](image-12.png)
+```
+3. อธิบายผลลัพธ์ที่ได้
+    - Query ใช้ parallel seq scan + sort + limit, ข้อมูลส่วนใหญ่จาก RAM, ใช้เวลา 145 ms เพื่อเอา 1000 แถวแรก
+```
+
 ```sql
 -- ทดสอบ Hash operation
 EXPLAIN (ANALYZE, BUFFERS)
@@ -446,10 +454,20 @@ LIMIT 100;
 ```
 
 ### ผลการทดลอง
-```
 1. รูปผลการรัน
+![alt text](image-13.png)
+```
 2. อธิบายผลลัพธ์ที่ได้ 
+    - Query ใช้ Limit 100 → เอาแถวแรก 100 แถว
+    - ใช้ GroupAggregate → group by number และกรอง count(*) > 1
+    - ใช้ Index Only Scan → อ่านข้อมูลจาก index โดยไม่ต้องเข้าถึง table
+    - Heap Fetches = 0 → ไม่ต้องอ่าน table จริง
+    - Execution Time = 0.254 ms → เร็วมาก
+    - Buffers hit = 6 → ข้อมูลอ่านจาก cache
+
 3. การสแกนเป็นแบบใด เกิดจากเหตุผลใด
+    - Scan แบบ Index Only Scan 
+    เหตุผลคือ index ครอบคลุมข้อมูลที่ต้องใช้ ทำให้ไม่ต้องอ่าน table จริง
 ```
 #### 5.3 การทดสอบ Maintenance Work Memory
 ```sql
@@ -465,9 +483,27 @@ DELETE FROM large_table WHERE id % 10 = 0;
 VACUUM (ANALYZE, VERBOSE) large_table;
 ```
 ### ผลการทดลอง
-```
+
 1. รูปผลการทดลอง จากคำสั่ง VACUUM (ANALYZE, VERBOSE) large_table;
+![alt text](image-14.png)
+```
 2. อธิบายผลลัพธ์ที่ได้
+    > Vacuum 
+        - ตรวจสอบและลบ dead tuples → ใน table large_table ไม่มี dead tuples
+        - จำนวน pages: 5059 remain, tuples: 450,000 remain
+
+    > Parallel workers
+        - ใช้ 2 worker ทำ index cleanup → index scan ไม่จำเป็น
+    
+    > Analyze
+        - สแกน 5059 pages, sample 30,000 rows → ประมาณ row ทั้งหมด 450,000 → อัปเดตสถิติสำหรับ query planner
+
+    > Buffer / WAL usage
+        - Buffers hit = 16, miss = 0 → ใช้ cache เป็นหลัก
+        - WAL usage = 0 records → ไม่มีการเขียน log หนัก
+
+    > เวลา
+        - รวมเวลา ~203 ms
 ```
 ### Step 6: การติดตาม Memory Usage
 
@@ -509,9 +545,9 @@ SELECT
 FROM get_memory_usage();
 ```
 ### ผลการทดลอง
-```
-รูปผลการทดลอง
-```
+
+- รูปผลการทดลอง
+![alt text](image-15.png)
 
 #### 6.2 การติดตาม Buffer Hit Ratio
 ```sql
@@ -530,10 +566,16 @@ WHERE heap_blks_read + heap_blks_hit > 0
 ORDER BY heap_blks_read + heap_blks_hit DESC;
 ```
 ### ผลการทดลอง
-```
+
 1. รูปผลการทดลอง
-2. อธิบายผลลัพธ์ที่ได้
+![alt text](image-16.png)
 ```
+2. อธิบายผลลัพธ์ที่ได้
+    - ตาราง large_table ถูกอ่านทั้งหมดจาก RAM
+    - ไม่มีการเข้าถึง disk → query ทำงานเร็วมาก
+    - Cache hit ratio = 100%
+```
+
 #### 6.3 ดู Buffer Hit Ratio ทั้งระบบ
 ```sql
 SELECT datname,
@@ -544,9 +586,14 @@ FROM pg_stat_database
 WHERE datname = current_database();
 ```
 ### ผลการทดลอง
-```
+
 1. รูปผลการทดลอง
+![alt text](image-17.png)
+```
 2. อธิบายผลลัพธ์ที่ได้
+    - ฐานข้อมูล performance_test มี query ส่วนใหญ่ดึงข้อมูลจาก RAM
+    - มีการอ่าน disk แค่ 3,481 blocks → ประสิทธิภาพดี
+    - Cache hit ratio สูง = 99.91%
 ```
 
 #### 6.4 ดู Table ที่มี Disk I/O มาก
@@ -565,9 +612,12 @@ ORDER BY heap_blks_read DESC
 LIMIT 10;
 ```
 ### ผลการทดลอง
-```
+
 1. รูปผลการทดลอง
+![alt text](image-18.png)
+```
 2. อธิบายผลลัพธ์ที่ได้
+    - ผลลัพธ์แสดงว่าปัจจุบันไม่มีตารางใดในฐานข้อมูลถูกอ่านจาก disk เลย ข้อมูลทั้งหมดถูกดึงจาก cache (shared buffers) ทำให้ประสิทธิภาพการเข้าถึงข้อมูลดีมาก
 ```
 ### Step 7: การปรับแต่ง Autovacuum
 
@@ -580,9 +630,24 @@ WHERE name LIKE '%autovacuum%'
 ORDER BY name;
 ```
 ### ผลการทดลอง
-```
+
 1. รูปผลการทดลอง
+![alt text](image-19.png)
+```
 2. อธิบายค่าต่าง ๆ ที่มีความสำคัญ
+    - autovacuum = on → เปิดใช้งาน autovacuum อัตโนมัติ
+
+    - autovacuum_vacuum_threshold / autovacuum_vacuum_scale_factor → กำหนดว่าเมื่อมีการ update/delete กี่แถวจะเริ่มทำ vacuum
+
+    - autovacuum_analyze_threshold / autovacuum_analyze_scale_factor → กำหนดว่าเมื่อมี insert/update/delete กี่แถวจะเริ่มทำ analyze
+
+    - autovacuum_freeze_max_age → ป้องกัน transaction ID wraparound
+
+    - autovacuum_max_workers → จำนวน worker สูงสุดที่รันพร้อมกัน
+
+    - autovacuum_naptime → เวลาหยุดพักระหว่างรอบ autovacuum
+
+    - log_autovacuum_min_duration → ถ้า autovacuum ใช้เวลานานกว่าค่านี้ จะถูก log
 ```
 
 #### 7.2 การปรับแต่ง Autovacuum สำหรับประสิทธิภาพ
@@ -610,9 +675,9 @@ ALTER SYSTEM SET autovacuum_work_mem = '512MB';
 SELECT pg_reload_conf();
 ```
 ### ผลการทดลอง
-```
-รูปผลการทดลองการปรับแต่ง Autovacuum (Capture รวมทั้งหมด 1 รูป)
-```
+
+- รูปผลการทดลองการปรับแต่ง Autovacuum (Capture รวมทั้งหมด 1 รูป)
+![alt text](image-20.png)
 
 ### Step 8: Performance Testing และ Benchmarking
 
