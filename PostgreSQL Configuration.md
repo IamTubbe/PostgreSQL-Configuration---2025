@@ -198,6 +198,7 @@ docker exec postgres-config df -h
     - -h แสดงผลแบบอ่านง่าย เป็น MB/GB แทนตัวเลขยาวๆ
 ```
 3. docker exec postgres-config nproc  แสดงค่าผลลัพธ์อย่างไร
+
 ![alt text](image.png)
 
 #### 1.2 เชื่อมต่อและตรวจสอบสถานะปัจจุบัน
@@ -249,6 +250,7 @@ WHERE name = 'shared_buffers';
 ### ผลการทดลอง
 
 1. รูปผลการรันคำสั่ง
+
 ![alt text](image-4.png)
 
 2. ค่า  shared_buffers มีการกำหนดค่าไว้เท่าไหร่ (ใช้ setting X unit)
@@ -273,8 +275,10 @@ docker exec -it -u postgres postgres-config pg_ctl restart -D /var/lib/postgresq
 ### ผลการทดลอง
 
 - รูปผลการเปลี่ยนแปลงค่า pending_restart
+
 ![alt text](image-5.png)
 - รูปหลังจาก restart postgres
+
 ![alt text](image-6.png)
 
 #### 2.2 ปรับแต่ง Work Memory (ไม่ต้อง restart)
@@ -298,6 +302,7 @@ WHERE name = 'work_mem';
 ### ผลการทดลอง
 
 - รูปผลการเปลี่ยนแปลงค่า work_mem
+
 ![alt text](image-7.png)
 
 
@@ -316,6 +321,7 @@ SHOW maintenance_work_mem;
 ### ผลการทดลอง
 
 - รูปผลการเปลี่ยนแปลงค่า maintenance_work_mem
+
 ![alt text](image-8.png)
 
 #### 3.4 ปรับแต่ง WAL Buffers
@@ -359,6 +365,7 @@ SHOW effective_cache_size;
 ### ผลการทดลอง
 
 - รูปผลการเปลี่ยนแปลงค่า effective_cache_size
+
 ![alt text](image-10.png)
 
 ### Step 4: ตรวจสอบผล
@@ -388,6 +395,7 @@ ORDER BY name;
 ### ผลการทดลอง
 
 - รูปผลการลัพธ์การตั้งค่า
+
 ![alt text](image-11.png)
 
 ### Step 5: การสร้างและทดสอบ Workload
@@ -437,6 +445,7 @@ LIMIT 1000;
     - BUFFERS → แสดงการใช้ I/O buffer เช่น อ่านจาก memory (cache) หรืออ่าน/เขียน disk
 ```
 2. รูปผลการรัน
+
 ![alt text](image-12.png)
 ```
 3. อธิบายผลลัพธ์ที่ได้
@@ -455,6 +464,7 @@ LIMIT 100;
 
 ### ผลการทดลอง
 1. รูปผลการรัน
+
 ![alt text](image-13.png)
 ```
 2. อธิบายผลลัพธ์ที่ได้ 
@@ -485,6 +495,7 @@ VACUUM (ANALYZE, VERBOSE) large_table;
 ### ผลการทดลอง
 
 1. รูปผลการทดลอง จากคำสั่ง VACUUM (ANALYZE, VERBOSE) large_table;
+
 ![alt text](image-14.png)
 ```
 2. อธิบายผลลัพธ์ที่ได้
@@ -547,6 +558,7 @@ FROM get_memory_usage();
 ### ผลการทดลอง
 
 - รูปผลการทดลอง
+
 ![alt text](image-15.png)
 
 #### 6.2 การติดตาม Buffer Hit Ratio
@@ -568,6 +580,7 @@ ORDER BY heap_blks_read + heap_blks_hit DESC;
 ### ผลการทดลอง
 
 1. รูปผลการทดลอง
+
 ![alt text](image-16.png)
 ```
 2. อธิบายผลลัพธ์ที่ได้
@@ -588,6 +601,7 @@ WHERE datname = current_database();
 ### ผลการทดลอง
 
 1. รูปผลการทดลอง
+
 ![alt text](image-17.png)
 ```
 2. อธิบายผลลัพธ์ที่ได้
@@ -614,6 +628,7 @@ LIMIT 10;
 ### ผลการทดลอง
 
 1. รูปผลการทดลอง
+
 ![alt text](image-18.png)
 ```
 2. อธิบายผลลัพธ์ที่ได้
@@ -632,6 +647,7 @@ ORDER BY name;
 ### ผลการทดลอง
 
 1. รูปผลการทดลอง
+
 ![alt text](image-19.png)
 ```
 2. อธิบายค่าต่าง ๆ ที่มีความสำคัญ
@@ -677,6 +693,7 @@ SELECT pg_reload_conf();
 ### ผลการทดลอง
 
 - รูปผลการทดลองการปรับแต่ง Autovacuum (Capture รวมทั้งหมด 1 รูป)
+
 ![alt text](image-20.png)
 
 ### Step 8: Performance Testing และ Benchmarking
@@ -752,6 +769,7 @@ ORDER BY test_timestamp DESC;
 ### ผลการทดลอง
 
 1. รูปผลการทดลอง
+
 ![alt text](image-21.png)
 ```
 2. อธิบายผลลัพธ์ที่ได้
@@ -791,6 +809,7 @@ SELECT * FROM memory_monitor;
 ### ผลการทดลอง
 
 - รูปผลการทดลอง
+
 ![alt text](image-22.png)
 
 
@@ -1610,13 +1629,12 @@ Estimated Usage = 2GB + (32MB × 100 × 0.5) + 512MB + 64MB
 
 6. แสดงผลการคำนวณ การกำหนดค่าหน่วยความจำต่าง ๆ โดยอ้างอิงเครื่องของตนเอง
     - เครื่อง 32 GB , 200 connections 
-    ตั้ง shared_buffers = 8GB, work_mem = 64MB
-    maintenance_work_mem = 1GB จะใช้ memory สูงสุด 22GB เหลือพอให้ OS
+    ตั้ง shared_buffers = 8 GB, work_mem = 64 MB
+    maintenance_work_mem = 1 GB จะใช้ memory สูงสุด 22 GB เหลือพอให้ OS
 
 7. การสแกนของฐานข้อมูล PostgreSQL มีกี่แบบอะไรบ้าง เปรียบเทียบการสแกนแต่ละแบบ
     - PostgreSQL มี 3 แบบสแกน 
         1.sequential scan อ่านทั้งตาราง
         2.index scan ใช้ index
         3.bitmap scan รวม index ลด I/O
-
 ```
