@@ -190,9 +190,16 @@ docker exec postgres-config df -h
 ### บันทึกผลการทดลอง
 ```
 1. อธิบายหน้าที่คำสั่ง docker exec postgres-config free, docker exec postgres-config df
+
+    - docker exec postgres-config free ดูการใช้ RAM ใน container
+    - docker exec postgres-config df ดูการใช้ Disk ใน container
+
 2. option -h ในคำสั่งมีผลอย่างไร
-3. docker exec postgres-config nproc  แสดงค่าผลลัพธ์อย่างไร
+    - -h แสดงผลแบบอ่านง่าย เป็น MB/GB แทนตัวเลขยาวๆ
 ```
+3. docker exec postgres-config nproc  แสดงค่าผลลัพธ์อย่างไร
+![alt text](image.png)
+
 #### 1.2 เชื่อมต่อและตรวจสอบสถานะปัจจุบัน
 ```bash
 docker exec -it postgres-config psql -U postgres
@@ -206,11 +213,15 @@ SELECT version();
 SHOW config_file;
 SHOW hba_file;
 SHOW data_directory;
-
-### บันทึกผลการทดลอง
 ```
-1. ตำแหน่งที่อยู่ของไฟล์ configuration อยู่ที่ตำแหน่งใด
-2. ตำแหน่งที่อยู่ของไฟล์ data อยู่ที่ตำแหน่งใด
+### บันทึกผลการทดลอง
+
+- 1. ตำแหน่งที่อยู่ของไฟล์ configuration อยู่ที่ตำแหน่งใด
+
+![alt text](image-1.png)
+- 2. ตำแหน่งที่อยู่ของไฟล์ data อยู่ที่ตำแหน่งใด**
+
+![alt text](image-2.png)
 ```
 -- ตรวจสอบการตั้งค่าปัจจุบัน
 SELECT name, setting, unit, category, short_desc 
@@ -221,9 +232,10 @@ WHERE name IN (
 );
 ```
 ### บันทึกผลการทดลอง
-```
-บันทึกรูปผลของ configuration ทั้ง 6 ค่า 
-```
+
+- บันทึกรูปผลของ configuration ทั้ง 6 ค่า
+
+![alt text](image-3.png)
 
 ### Step 2: การปรับแต่งพารามิเตอร์แบบค่อยเป็นค่อยไป
 
@@ -233,13 +245,17 @@ WHERE name IN (
 SELECT name, setting, unit, source, pending_restart
 FROM pg_settings 
 WHERE name = 'shared_buffers';
-
+```
 ### ผลการทดลอง
-```
-1.รูปผลการรันคำสั่ง
+
+1. รูปผลการรันคำสั่ง
+![alt text](image-4.png)
+
 2. ค่า  shared_buffers มีการกำหนดค่าไว้เท่าไหร่ (ใช้ setting X unit)
+    - shared_buffers = 128 MB
 3. ค่า  pending_restart ในผลการทดลองมีค่าเป็นอย่างไร และมีความหมายอย่างไร
-```
+    - pending_restart = f → ไม่ต้อง restart เพื่อให้ค่ามีผล
+```sql
 -- คำนวณและตั้งค่าใหม่
 -- สำหรับระบบ 2GB: 512MB (25%)
 ALTER SYSTEM SET shared_buffers = '512MB';
@@ -249,17 +265,17 @@ select pg_reload_conf();
 SELECT name, setting, unit, source, pending_restart
 FROM pg_settings 
 WHERE name = 'shared_buffers';
-
 ```
 -- ออกจาก postgres prompt (กด \q แล้ว enter) ทำการ Restart PostgreSQL ด้วยคำสั่ง แล้ว run docker อีกครั้ง หรือใช้วิธีการ stop และ run containner
+```sql
 docker exec -it -u postgres postgres-config pg_ctl restart -D /var/lib/postgresql/data -m fast
-
+```
 ### ผลการทดลอง
-```
-รูปผลการเปลี่ยนแปลงค่า pending_restart
-รูปหลังจาก restart postgres
 
-```
+- รูปผลการเปลี่ยนแปลงค่า pending_restart
+![alt text](image-5.png)
+- รูปหลังจาก restart postgres
+![alt text](image-6.png)
 
 #### 2.2 ปรับแต่ง Work Memory (ไม่ต้อง restart)
 ```sql
@@ -280,9 +296,10 @@ FROM pg_settings
 WHERE name = 'work_mem';
 ```
 ### ผลการทดลอง
-```
-รูปผลการเปลี่ยนแปลงค่า work_mem
-```
+
+- รูปผลการเปลี่ยนแปลงค่า work_mem
+![alt text](image-7.png)
+
 
 #### 3.3 ปรับแต่ง Maintenance Work Memory
 ```sql
@@ -297,9 +314,9 @@ SELECT pg_reload_conf();
 SHOW maintenance_work_mem;
 ```
 ### ผลการทดลอง
-```
-รูปผลการเปลี่ยนแปลงค่า maintenance_work_mem
-```
+
+- รูปผลการเปลี่ยนแปลงค่า maintenance_work_mem
+![alt text](image-8.png)
 
 #### 3.4 ปรับแต่ง WAL Buffers
 ```sql
@@ -322,9 +339,10 @@ docker exec -it postgres-config psql -U postgres
 SHOW wal_buffers;
 ```
 ### ผลการทดลอง
-```
-รูปผลการเปลี่ยนแปลงค่า wal_buffers
-```
+
+- รูปผลการเปลี่ยนแปลงค่า wal_buffers
+
+![alt text](image-9.png)
 
 #### 3.5 ปรับแต่ง Effective Cache Size
 ```sql
@@ -339,9 +357,9 @@ SELECT pg_reload_conf();
 SHOW effective_cache_size;
 ```
 ### ผลการทดลอง
-```
-รูปผลการเปลี่ยนแปลงค่า effective_cache_size
-```
+
+- รูปผลการเปลี่ยนแปลงค่า effective_cache_size
+![alt text](image-10.png)
 
 ### Step 4: ตรวจสอบผล
 
